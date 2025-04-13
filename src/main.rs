@@ -1,5 +1,7 @@
+use command::Command;
 use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
 use tokio::net::TcpListener;
+mod command;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -32,6 +34,25 @@ async fn handle_client(socket: tokio::net::TcpStream) -> anyhow::Result<()> {
         }
 
         println!("Received: {}", line.trim());
+        let command = Command::parse(&line);
+
+        match command {
+            Command::Get(key) => {
+                // Handle GET
+                writer.write_all(b"OK\n").await?;
+            }
+            Command::Set(key, value) => {
+                // Handle SET
+                writer.write_all(b"OK\n").await?;
+            }
+            Command::Delete(key) => {
+                // Handle DELETE
+                writer.write_all(b"OK\n").await?;
+            }
+            Command::Unknown => {
+                writer.write_all(b"ERROR Unknown Command\n").await?;
+            }
+        }
 
         writer.write_all(line.as_bytes()).await?;
     }
