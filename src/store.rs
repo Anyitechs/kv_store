@@ -3,7 +3,7 @@ use tokio::sync::Mutex;
 
 #[derive(Debug, Default)]
 pub struct KeyValueStore {
-    map: Mutex<HashMap<String, String>>,
+    pub map: Mutex<HashMap<String, String>>,
 }
 
 impl KeyValueStore {
@@ -18,13 +18,24 @@ impl KeyValueStore {
         map.get(key).cloned()
     }
 
-    pub async fn set(&self, key: String, value: String) {
-        let mut map = self.map.lock().await;
-        map.insert(key, value);
+    pub async fn set(&self, key: String, value: String) -> anyhow::Result<()> {
+        {
+            let mut map = self.map.lock().await;
+            map.insert(key, value);
+        }
+        self.save("data.json").await?;
+        Ok(())
     }
 
-    pub async fn delete(&self, key: &str) -> bool {
-        let mut map = self.map.lock().await;
-        map.remove(key).is_some()
+    pub async fn delete(&self, key: &str) -> anyhow::Result<bool> {
+        let removed = {
+            let mut map = self.map.lock().await;
+            map.remove(key).is_some()
+        };
+
+        if removed {
+            self.save("data.json").await?;
+        }
+        Ok(removed)
     }
 }
