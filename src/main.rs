@@ -1,8 +1,8 @@
+use command::Command;
+use std::sync::Arc;
+use store::KeyValueStore;
 use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
 use tokio::net::TcpListener;
-use command::Command;
-use store::KeyValueStore;
-use std::sync::Arc;
 
 mod command;
 mod store;
@@ -27,7 +27,10 @@ async fn main() -> anyhow::Result<()> {
     }
 }
 
-async fn handle_client(socket: tokio::net::TcpStream, store: Arc<KeyValueStore>) -> anyhow::Result<()> {
+async fn handle_client(
+    socket: tokio::net::TcpStream,
+    store: Arc<KeyValueStore>,
+) -> anyhow::Result<()> {
     let (reader, mut writer) = socket.into_split();
     let mut reader = BufReader::new(reader);
     let mut line: String = String::new();
@@ -46,7 +49,9 @@ async fn handle_client(socket: tokio::net::TcpStream, store: Arc<KeyValueStore>)
         match command {
             Command::Get(key) => {
                 if let Some(value) = store.get(&key).await {
-                    writer.write_all(format!("VALUE {}\n", value).as_bytes()).await?;
+                    writer
+                        .write_all(format!("VALUE {}\n", value).as_bytes())
+                        .await?;
                 } else {
                     writer.write_all(b"ERROR key not found\n").await?;
                 }

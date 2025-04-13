@@ -8,7 +8,9 @@ pub struct KeyValueStore {
 
 impl KeyValueStore {
     pub fn new() -> Self {
-        Self { map: Mutex::new(HashMap::new()), }
+        Self {
+            map: Mutex::new(HashMap::new()),
+        }
     }
 
     pub async fn get(&self, key: &str) -> Option<String> {
